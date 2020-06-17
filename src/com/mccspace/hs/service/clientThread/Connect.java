@@ -1,8 +1,14 @@
 package com.mccspace.hs.service.clientThread;
 
+import com.mccspace.hs.service.game.CheckerBoard;
+import com.mccspace.hs.service.game.gameplayer.GamePlayer;
 import com.mccspace.hs.service.listen.ConnectIntyerface;
 import com.mccspace.hs.service.listen.ConnectListen;
 import com.mccspace.hs.service.listen.*;
+import com.mccspace.hs.service.manager.Player;
+import com.mccspace.hs.service.roomThread.Room;
+import com.mccspace.hs.tools.Base64Crypto;
+import com.mccspace.hs.tools.CommonMethod;
 import com.mccspace.hs.tools.Email;
 import com.mccspace.hs.tools.Print;
 import org.json.JSONObject;
@@ -10,10 +16,15 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import static com.mccspace.hs.tools.Parameter.cc;
 
 /**
  * Connect类
@@ -23,13 +34,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @AUTHOR 韩硕~
  */
 
-public class Connect implements Runnable{
+public class Connect implements Runnable, GamePlayer {
 
     private Socket socket;
 
     private PrintWriter bw;
 
-    private String name;
+    private String user;
+
+    private Room inRoom;
 
     private List<ConnectIntyerface> Listen = new CopyOnWriteArrayList<>();
 
@@ -80,7 +93,7 @@ public class Connect implements Runnable{
             }
 
         } catch (SocketException e){
-            //监听断开连接
+            Player.loginPlayer.remove(this);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -90,8 +103,11 @@ public class Connect implements Runnable{
 
     public void login(String user){
         removeAllListen();
-        name = user;
+        this.user = user;
+        Player.loginPlayer.add(this);
         addListen(new ListeningConstant.getPlayerInform(this,true));
+        addListen(new ListeningConstant.createRoom(this,true));
+        addListen(new ListeningConstant.joinRoom(this,true));
     }
 
     public void printPacket(String name,JSONObject packet) {
@@ -100,10 +116,10 @@ public class Connect implements Runnable{
     }
 
     public String getAddress() {
-        if(name == null)
+        if(user == null)
             return (socket.getInetAddress().toString()+":"+socket.getPort()).substring(1);
         else
-            return name;
+            return user;
     }
 
     public void addListen(ConnectIntyerface ct){
@@ -120,5 +136,71 @@ public class Connect implements Runnable{
 
     public void removeAllListen(){
         Listen = new CopyOnWriteArrayList<>();
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public Room getInRoom() {
+        return inRoom;
+    }
+
+    public void setInRoom(Room inRoom) {
+        this.inRoom = inRoom;
+    }
+
+    @Override
+    public List<Integer> waitPlay() {
+        final List<Integer>[] play = new List[1];
+        play[0] = new ArrayList<>();
+        Object lock = new Object();
+        addListen(new ConnectListen("play") {
+            @Override
+            public void run(JSONObject data) {
+                for(var a : data.getJSONArray("play").toList())
+                    play[0].add((int)a);
+                synchronized (lock) {
+                    lock.notifyAll();
+                }
+            }
+        });
+        synchronized (lock){
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return play[0];
+        }
+    }
+
+    @Override
+    public void updataChecker(CheckerBoard checkerBoard,List<Integer> upChess) {
+        var board = new JSONObject();
+        board.put("notEmote",checkerBoard.notEmote());
+        board.put("isBlack",checkerBoard.isBlack());
+        board.put("isKing",checkerBoard.isKing());
+        var data = new JSONObject();
+        data.put("board",board);
+        data.put("upChess",upChess);
+        data.put("nowPro",checkerBoard.getProbably());
+        if(checkerBoard.blackPlay()){
+            if (inRoom.isBlack(this))
+                data.put("wait",false);
+            else
+                data.put("wait",true);
+        } else {
+            if (inRoom.isBlack(this))
+                data.put("wait",true);
+            else
+                data.put("wait",false);
+        }
+        printPacket("updataChecker", data);
+    }
+
+    @Override
+    public JSONObject getInform() {
+        return CommonMethod.getInform(user);
     }
 }

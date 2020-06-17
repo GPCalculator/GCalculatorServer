@@ -17,8 +17,6 @@ public class Base64Crypto {
 
     /**
      * <p>将文件转成base64 字符串</p>
-     *
-     * @param path 文件路径
      */
     public static String encodeBase64File(File file) {
         try {

@@ -19,7 +19,7 @@ public class Print {
 
     private File file;
 
-    private Print(){
+    private Print() {
         pr = this;
         file = new File("log/"+(standDate()).replace('/','.').replace(':','-')+"RunLog.txt");
         try {

@@ -2,10 +2,9 @@ package com.mccspace.hs.service.listen;
 
 import com.mccspace.hs.service.clientThread.Connect;
 import com.mccspace.hs.service.manager.Player;
-import com.mccspace.hs.tools.Base64Crypto;
-import com.mccspace.hs.tools.Email;
-import com.mccspace.hs.tools.Parameter;
-import com.mccspace.hs.tools.Print;
+import com.mccspace.hs.service.manager.RoomManager;
+import com.mccspace.hs.service.roomThread.Room;
+import com.mccspace.hs.tools.*;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -214,32 +213,43 @@ public class ListeningConstant {
 
         @Override
         public void run(JSONObject data) {
-            try (PreparedStatement ps = cc.prepareStatement("SELECT `user`.id, `user`.`user`, user_inform.`name`, user_inform.sex, user_inform.gamenum, user_inform.winnum, user_inform.drawnum, user_inform.failnum FROM user INNER JOIN user_inform ON user.id = user_inform.id WHERE `user`.`user` = ?;")) {
-                ps.setObject(1, data.getString("player"));
-                try (ResultSet rs = ps.executeQuery()) {
-                    rs.next();
-                    var turn = new JSONObject();
-                    String head;
-                    File png;
-                    if((png = new File("bin/head/"+data.getString("player")+".png")).exists())
-                        head = Base64Crypto.encodeBase64File(png);
-                    else
-                        head = Base64Crypto.encodeBase64File(new File("bin/head/默认.png"));
-                    turn.put("head",head);
-                    turn.put("user",rs.getString("user"));
-                    turn.put("name",rs.getString("name"));
-                    turn.put("sex",rs.getString("sex"));
-                    turn.put("gamenum",rs.getInt("gamenum"));
-                    turn.put("winnum",rs.getInt("winnum"));
-                    turn.put("drawnum",rs.getInt("drawnum"));
-                    turn.put("failnum",rs.getInt("failnum"));
-                    connect.printPacket("getPlayerInform",turn);
-                    Print.standOutput(connect,"获取了："+turn.getString("user")+" 的详细信息");
-                }
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
+            connect.printPacket("getPlayerInform",CommonMethod.getInform(data.getString("player")));
+        }
+    }
 
+    public static class createRoom extends ConnectListen{
+
+        private Connect connect;
+
+        public createRoom(Connect connect, boolean always) {
+            super("createRoom", always);
+            this.connect = connect;
+        }
+
+        @Override
+        public void run(JSONObject data) {
+            Room room;
+            if(data.getBoolean("usePassword"))
+                room = new Room(data.getString("password"));
+            else
+                room = new Room();
+            room.joinBuffer(connect);
+            Print.standOutput(connect,"成功创建房间:"+room.getRoomID());
+        }
+    }
+
+    public static class joinRoom extends ConnectListen{
+
+        private Connect connect;
+
+        public joinRoom(Connect connect, boolean always) {
+            super("joinRoom", always);
+            this.connect = connect;
+        }
+
+        @Override
+        public void run(JSONObject data) {
+            RoomManager.room.get(data.getInt("roomID")).join(connect);
         }
     }
 
