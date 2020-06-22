@@ -18,7 +18,7 @@ import java.util.List;
 public record CheckerBoard(long notEmote, long isBlack, long isKing, boolean blackPlay) {
 
     public static CheckerBoard newBoard() {
-        return new CheckerBoard(0b11111111111111111111000000000011111111111111111111L, 0b11111111111111111111L, 0L, true);
+        return new CheckerBoard(0b11111111111111111111000000000011111111111111111111L, 0b11111111111111111111L, /*0b100000000000000000L*/0L, true);
     }
 
     public ChessType getChess(int n) {
@@ -43,6 +43,10 @@ public record CheckerBoard(long notEmote, long isBlack, long isKing, boolean bla
                 return ChessType.Bar;
             }
         }
+    }
+
+    public ChessType getChess(int x,int y){
+        return getChess(turnBoardCode(x,y));
     }
 
     public CheckerBoard turnType(int from, ChessType to) {
@@ -81,43 +85,115 @@ public record CheckerBoard(long notEmote, long isBlack, long isKing, boolean bla
         if (a.size() == 0) {
             for (int i = 0; i < 50; i++) {
                 if (blackPlay && getChess(i).isBlack()) {
-                    if (getChess(getFX(i, -1, 1)) == ChessType.Emote) {
-                        List<Integer> z = new ArrayList<>();
-                        z.add(i);
-                        z.add(getFX(i, -1, 1));
-                        a.add(z);
-                    }
-                    if (getChess(getFX(i, 1, 1)) == ChessType.Emote) {
-                        List<Integer> z = new ArrayList<>();
-                        z.add(i);
-                        z.add(getFX(i, 1, 1));
-                        a.add(z);
+                    if(!getChess(i).isKing()) {
+                        if (getChess(getFX(i, -1, 1)) == ChessType.Emote) {
+                            List<Integer> z = new ArrayList<>();
+                            z.add(i);
+                            z.add(getFX(i, -1, 1));
+                            a.add(z);
+                        }
+                        if (getChess(getFX(i, 1, 1)) == ChessType.Emote) {
+                            List<Integer> z = new ArrayList<>();
+                            z.add(i);
+                            z.add(getFX(i, 1, 1));
+                            a.add(z);
+                        }
+                    } else {
+                        for(int t=1;t<9;t++) {
+                            if (getChess(getFX(i, -t, t)) == ChessType.Emote) {
+                                List<Integer> z = new ArrayList<>();
+                                z.add(i);
+                                z.add(getFX(i, -t, t));
+                                a.add(z);
+                            } else break;
+                        }
+                        for(int t=1;t<9;t++) {
+                            if (getChess(getFX(i, t, t)) == ChessType.Emote) {
+                                List<Integer> z = new ArrayList<>();
+                                z.add(i);
+                                z.add(getFX(i, t, t));
+                                a.add(z);
+                            } else break;
+                        }
+
+                        for(int t=1;t<9;t++) {
+                            if (getChess(getFX(i, -t, -t)) == ChessType.Emote) {
+                                List<Integer> z = new ArrayList<>();
+                                z.add(i);
+                                z.add(getFX(i, -t, -t));
+                                a.add(z);
+                            } else break;
+                        }
+                        for(int t=1;t<9;t++) {
+                            if (getChess(getFX(i, t, -t)) == ChessType.Emote) {
+                                List<Integer> z = new ArrayList<>();
+                                z.add(i);
+                                z.add(getFX(i, t, -t));
+                                a.add(z);
+                            } else break;
+                        }
                     }
                 } else if (!blackPlay && getChess(i).isWhite()) {
-                    if (getChess(getFX(i, 1, -1)) == ChessType.Emote) {
-                        List<Integer> z = new ArrayList<>();
-                        z.add(i);
-                        z.add(getFX(i, 1, -1));
-                        a.add(z);
-                    }
-                    if (getChess(getFX(i, -1, -1)) == ChessType.Emote) {
-                        List<Integer> z = new ArrayList<>();
-                        z.add(i);
-                        z.add(getFX(i, -1, -1));
-                        a.add(z);
+                    if(!getChess(i).isKing()) {
+                        if (getChess(getFX(i, 1, -1)) == ChessType.Emote) {
+                            List<Integer> z = new ArrayList<>();
+                            z.add(i);
+                            z.add(getFX(i, 1, -1));
+                            a.add(z);
+                        }
+                        if (getChess(getFX(i, -1, -1)) == ChessType.Emote) {
+                            List<Integer> z = new ArrayList<>();
+                            z.add(i);
+                            z.add(getFX(i, -1, -1));
+                            a.add(z);
+                        }
+                    } else {
+                        for(int t=1;t<9;t++) {
+                            if (getChess(getFX(i, -t, t)) == ChessType.Emote) {
+                                List<Integer> z = new ArrayList<>();
+                                z.add(i);
+                                z.add(getFX(i, -t, t));
+                                a.add(z);
+                            } else break;
+                        }
+                        for(int t=1;t<9;t++) {
+                            if (getChess(getFX(i, t, t)) == ChessType.Emote) {
+                                List<Integer> z = new ArrayList<>();
+                                z.add(i);
+                                z.add(getFX(i, t, t));
+                                a.add(z);
+                            } else break;
+                        }
+
+                        for(int t=1;t<9;t++) {
+                            if (getChess(getFX(i, -t, -t)) == ChessType.Emote) {
+                                List<Integer> z = new ArrayList<>();
+                                z.add(i);
+                                z.add(getFX(i, -t, -t));
+                                a.add(z);
+                            } else break;
+                        }
+                        for(int t=1;t<9;t++) {
+                            if (getChess(getFX(i, t, -t)) == ChessType.Emote) {
+                                List<Integer> z = new ArrayList<>();
+                                z.add(i);
+                                z.add(getFX(i, t, -t));
+                                a.add(z);
+                            } else break;
+                        }
                     }
                 }
             }
         }
         List<List<Integer>> toKingRoad = new ArrayList<>();
-        int max = a.get(0).size();
+        int max = 1;
         for (var i : a) {
             if (i.size() > max)
                 max = i.size();
             for (int j = 1; j < i.size(); j++) {
                 if (((i.get(j) > 44 && blackPlay) || (i.get(j) < 5 && !blackPlay)) && !getChess(i.get(0)).isKing()) {
                     List<Integer> road = new ArrayList<>();
-                    for(int k = 0 ;k <=j;k++){
+                    for (int k = 0; k <= j; k++) {
                         road.add(i.get(k));
                     }
                     toKingRoad.add(road);
@@ -189,7 +265,8 @@ public record CheckerBoard(long notEmote, long isBlack, long isKing, boolean bla
                         n.add(t);
                         turnType(t, getChess(now)).turnType(en, ChessType.Bar).turnType(now, ChessType.Emote).getNextJump(road, n, t);
                         isEnd = false;
-                    }
+                    } else
+                        break;
                 }
                 break;
             } else if (getChess(t) == ChessType.Emote)
@@ -203,30 +280,24 @@ public record CheckerBoard(long notEmote, long isBlack, long isKing, boolean bla
     public CheckerBoard play(List<Integer> road) {
         CheckerBoard now = this;
         for (int i = 1; i < road.size(); i++) {
-            int minY = getY(road.get(i));
-            int maxY = getY(road.get(i - 1));
-            int minX = getX(road.get(i));
-            int maxX = getX(road.get(i - 1));
-            if (minY > maxY) {
-                int t = maxY;
-                maxY = minY;
-                minY = t;
-            }
-            if (minX > maxX) {
-                int t = maxX;
-                maxX = minX;
-                minX = t;
-            }
-            for (int j = minY + 1; j <= maxY - 1; j++) {
-                now = now.turnType(turnBoardCode(++maxX, j), ChessType.Emote);
+            int endY = getY(road.get(i));
+            int startY = getY(road.get(i - 1));
+            int endX = getX(road.get(i));
+            int startX = getX(road.get(i - 1));
+            for (int j = startX; (startX > endX) ? j > endX : j < endX; ) {
+                if (startX > endX)
+                    j--;
+                else
+                    j++;
+                now = now.turnType(turnBoardCode(j, (startY > endY) ? --startY : ++startY), ChessType.Emote);
             }
         }
         now = now.turnType(road.get(road.size() - 1), getChess(road.get(0)));
 
         now = now.turnType(road.get(0), ChessType.Emote);
         now = now.turnTeam();
-        if(!getChess(road.get(0)).isKing() && (((road.get(road.size()-1))<5 && !blackPlay) || ((road.get(road.size()-1))>44 && blackPlay)))
-            now = now.turnType(road.get(road.size()-1),(getChess(road.get(0)) == ChessType.Black)?ChessType.BlackKing:ChessType.WhiteKing);
+        if (!getChess(road.get(0)).isKing() && (((road.get(road.size() - 1)) < 5 && !blackPlay) || ((road.get(road.size() - 1)) > 44 && blackPlay)))
+            now = now.turnType(road.get(road.size() - 1), (getChess(road.get(0)) == ChessType.Black) ? ChessType.BlackKing : ChessType.WhiteKing);
         return now;
     }
 
@@ -243,7 +314,7 @@ public record CheckerBoard(long notEmote, long isBlack, long isKing, boolean bla
     }
 
     public static int turnBoardCode(int x, int y) {
-        return y * 5 + (int) (x / 2) - 1;
+        return y * 5 + (int) (x / 2);
     }
 
     public static int getX(int now) {
@@ -253,5 +324,14 @@ public record CheckerBoard(long notEmote, long isBlack, long isKing, boolean bla
 
     public static int getY(int now) {
         return (int) (now / 5);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (notEmote ^ (notEmote >>> 32));
+        result = 31 * result + (int) (isBlack ^ (isBlack >>> 32));
+        result = 31 * result + (int) (isKing ^ (isKing >>> 32));
+        result = 31 * result + (blackPlay ? 1 : 0);
+        return result;
     }
 }

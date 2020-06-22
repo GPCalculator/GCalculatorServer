@@ -25,3 +25,4 @@
 <br>`joinRoom` 加入房间结果反馈 &ensp;&ensp;"{"result":false}"&ensp;&ensp;√
 <br>`joinRoomPws` 加入房间密码结果反馈 &ensp;&ensp;"{"result":false}"&ensp;&ensp;√
 <br>`updataChecker` 更新游戏数据 &ensp;&ensp;"{"board":{"notEmote":123,"isBlack":123,"isKing":123},"upChess":[0,50,40],"nowPro":[[0,10],[10,20]],"wait":true}"&ensp;&ensp;√
+<br>`win` 胜利反馈！ &ensp;&ensp;"{"win":true}"&ensp;&ensp;√

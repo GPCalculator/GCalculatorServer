@@ -53,6 +53,7 @@ public class Initialization {
             }
             result.close();
             st.close();
+            cc.setAutoCommit(false);
         } catch (Exception e) {
             e.printStackTrace();
         }

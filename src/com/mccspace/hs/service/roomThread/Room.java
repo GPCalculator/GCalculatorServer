@@ -1,5 +1,6 @@
 package com.mccspace.hs.service.roomThread;
 
+import com.mccspace.hs.AI.monteCarlo.MonteCarlo;
 import com.mccspace.hs.service.clientThread.Connect;
 import com.mccspace.hs.service.game.CheckerBoard;
 import com.mccspace.hs.service.game.gameplayer.GamePlayer;
@@ -52,12 +53,16 @@ public class Room implements Runnable {
         checkerBoard = CheckerBoard.newBoard();
         updataChecker();
         while(true){
-            checkerBoard = checkerBoard.play(black.waitPlay());
+            upChess = black.waitPlay();
+            checkerBoard = checkerBoard.play(upChess);
             updataChecker();
-            //胜利检测
-            checkerBoard = checkerBoard.play(white.waitPlay());
+            if(checkerBoard.getProbably().size() == 0)
+                blackWin();
+            upChess = white.waitPlay();
+            checkerBoard = checkerBoard.play(upChess);
             updataChecker();
-            //胜利检测
+            if(checkerBoard.getProbably().size() == 0)
+                whiteWin();
         }
     }
 
@@ -81,7 +86,39 @@ public class Room implements Runnable {
         white.updataChecker(checkerBoard,upChess);
     }
 
+    public void whiteWin(){
+        var data = new JSONObject();
+        if(black instanceof Connect){
+            data.put("win",false);
+            ((Connect)black).printPacket("win",data);
+        }
+        if(white instanceof Connect){
+            data.put("win",true);
+            ((Connect)black).printPacket("win",data);
+        }
+        init();
+    }
 
+    public void blackWin(){
+        var data = new JSONObject();
+        if(black instanceof Connect){
+            data.put("win",true);
+            ((Connect)black).printPacket("win",data);
+        }
+        if(white instanceof Connect){
+            data.put("win",false);
+            ((Connect)black).printPacket("win",data);
+        }
+        init();
+    }
+
+    public void init(){
+        whiteReady = false;
+        blackReady = false;
+        updateRoomInform();
+        checkerBoard = new CheckerBoard(0,0,0,true);
+        updataChecker();
+    }
 
     public void leftWhite() {
         white = null;
@@ -140,15 +177,19 @@ public class Room implements Runnable {
         });
         if(black == null) {
             Print.standOutput(connect,"已加入房间:"+roomID);
-            joinBlack(connect);
+            //已更改
+            /*joinWhite*/joinBlack(connect);
             connect.setInRoom(this);
             connect.addListen(new ConnectListen("ready") {
                 @Override
                 public void run(JSONObject data) {
                     Print.standOutput(connect,"已准备");
-                    readyBlack();
+                    /*readyWhite*/readyBlack();
                 }
             });
+            //临时测试规则
+            /*joinBlack*/joinWhite(new MonteCarlo());
+            /*readyBlack*/readyWhite();
         } else if(white == null) {
             Print.standOutput(connect,"已加入房间:"+roomID);
             joinWhite(connect);
@@ -197,5 +238,9 @@ public class Room implements Runnable {
         if(connect == black)
             return true;
         return false;
+    }
+
+    public List<Integer> getUpChess() {
+        return upChess;
     }
 }

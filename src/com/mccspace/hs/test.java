@@ -1,5 +1,7 @@
 package com.mccspace.hs;
 
+import com.mccspace.hs.AI.monteCarlo.runSeacherThread;
+import com.mccspace.hs.AI.monteCarlo.tree.Tree;
 import com.mccspace.hs.initialization.Initialization;
 import com.mccspace.hs.service.game.CheckerBoard;
 import com.mccspace.hs.tools.Email;
@@ -15,6 +17,9 @@ import javax.mail.internet.MimeMessage;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * test¿‡
@@ -26,16 +31,23 @@ import java.util.Properties;
 
 public class test {
 
-    public static void main(String[] ar) {
+    public static void main(String[] ar) throws InterruptedException {
+        long startTime=System.currentTimeMillis();
+
         var a = CheckerBoard.newBoard();
-        var b = new ArrayList<Integer>();
-        b.add(17);
-        b.add(22);
-        a.play(b);
-        b = new ArrayList<Integer>();
-        b.add(32);
-        b.add(27);
-        a.play(b);
+        var node = Tree.getTree().getNode(a);
+
+        ExecutorService es = Executors.newFixedThreadPool(12);
+        for(int i=0;i<12;i++)
+            es.submit(new runSeacherThread(a));
+
+        es.shutdown();
+        es.awaitTermination(60, TimeUnit.SECONDS);
+
+        System.out.println("∫ƒ ±£∫"+(System.currentTimeMillis()-startTime));
+
+        var c = Tree.getTree().getAllTree();
+        System.out.println("666");
     }
 
 }
