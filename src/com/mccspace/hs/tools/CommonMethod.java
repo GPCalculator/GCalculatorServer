@@ -11,7 +11,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import static com.mccspace.hs.tools.Parameter.cc;
 
 /**
  * CommonMethod¿‡
@@ -22,44 +21,6 @@ import static com.mccspace.hs.tools.Parameter.cc;
  */
 
 public class CommonMethod {
-
-    public static JSONObject getInform(String user){
-        try (PreparedStatement ps = cc.prepareStatement("SELECT `user`.id, `user`.`user`, user_inform.`name`, user_inform.sex, user_inform.gamenum, user_inform.winnum, user_inform.drawnum, user_inform.failnum, user_inform.birth FROM user INNER JOIN user_inform ON user.id = user_inform.id WHERE `user`.`user` = ?;")) {
-            ps.setObject(1, user);
-            try (ResultSet rs = ps.executeQuery()) {
-                rs.next();
-                var turn = new JSONObject();
-                String head;
-                File png;
-                if ((png = new File("bin/head/" + user + ".png")).exists())
-                    head = Base64Crypto.encodeBase64File(png);
-                else
-                    head = Base64Crypto.encodeBase64File(new File("bin/head/ƒ¨»œ.png"));
-                String str = rs.getString("birth");
-                Date date = null;
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                try {
-                    date = sdf.parse(str);
-                } catch (java.text.ParseException e) {
-                    System.out.println(e.getMessage());
-                }
-
-                turn.put("head", head);
-                turn.put("age", getAgeByBirth(date));
-                turn.put("user", rs.getString("user"));
-                turn.put("name", rs.getString("name"));
-                turn.put("sex", rs.getString("sex"));
-                turn.put("gamenum", rs.getInt("gamenum"));
-                turn.put("winnum", rs.getInt("winnum"));
-                turn.put("drawnum", rs.getInt("drawnum"));
-                turn.put("failnum", rs.getInt("failnum"));
-                return turn;
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return null;
-    }
 
     public static int getAgeByBirth(Date birthDay) {
         int age = 0;

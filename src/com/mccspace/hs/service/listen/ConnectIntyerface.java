@@ -2,6 +2,7 @@ package com.mccspace.hs.service.listen;
 
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.sql.SQLException;
 
 /**
@@ -13,7 +14,7 @@ import java.sql.SQLException;
 public interface ConnectIntyerface{
 
     boolean whetherRun(String connectName);
-    void run(JSONObject data);
+    void run(JSONObject data) throws IOException;
     boolean isPermanent();
 
     String getType();

@@ -28,7 +28,7 @@ public class Email {
 
             message.setSubject(title);
 
-            message.setText("以下消息为自动发送，如不为您主动操作请忽略：\n\t"+massage);
+            message.setText("以下消息为自动发送，如不为您主动操作请忽略：\n\n"+massage);
 
             Transport transport = Parameter.session.getTransport();
 

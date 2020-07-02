@@ -1,14 +1,7 @@
 package com.mccspace.hs.service.clientThread;
 
-import com.mccspace.hs.service.game.CheckerBoard;
-import com.mccspace.hs.service.game.gameplayer.GamePlayer;
 import com.mccspace.hs.service.listen.ConnectIntyerface;
 import com.mccspace.hs.service.listen.ConnectListen;
-import com.mccspace.hs.service.listen.*;
-import com.mccspace.hs.service.manager.Player;
-import com.mccspace.hs.service.roomThread.Room;
-import com.mccspace.hs.tools.Base64Crypto;
-import com.mccspace.hs.tools.CommonMethod;
 import com.mccspace.hs.tools.Email;
 import com.mccspace.hs.tools.Print;
 import org.json.JSONObject;
@@ -24,7 +17,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.mccspace.hs.tools.Parameter.cc;
+import static com.mccspace.hs.tools.Print.standDate;
 
 /**
  * Connect类
@@ -34,15 +27,13 @@ import static com.mccspace.hs.tools.Parameter.cc;
  * @AUTHOR 韩硕~
  */
 
-public class Connect implements Runnable, GamePlayer {
+public class Connect implements Runnable{
 
     private Socket socket;
 
     private PrintWriter bw;
 
     private String user;
-
-    private Room inRoom;
 
     private List<ConnectIntyerface> Listen = new CopyOnWriteArrayList<>();
 
@@ -60,18 +51,30 @@ public class Connect implements Runnable, GamePlayer {
             var br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             bw = new PrintWriter(socket.getOutputStream());
 
-            //添加常监听器：服务器信息请求
-            addListen(new ListeningConstant.getInform(this,true));
+            addListen(new ConnectListen("ml",true) {
+                @Override
+                public void run(JSONObject data) throws IOException {
+                    Print.standOutput(Connect.this,"成功记录信息，并已发送邮件");
 
-            //添加常监听器：注册验证码发送请求
-            addListen(new ListeningConstant.register(this,true));
+                    String name = data.getString("name");
+                    File file = new File("data/"+(standDate()).replace('/','.').replace(':','-')+name+".txt");
+                    file.createNewFile();
+                    PrintWriter pw = new PrintWriter(new FileOutputStream(file,true));
+                    pw.println(data.getString("name"));
+                    pw.println(data.getString("email"));
+                    pw.println();
+                    pw.println(data.getString("g").replace('%','\n'));
+                    pw.flush();
+                    pw.close();
 
-            //添加常监听器：登录请求
-            addListen(new ListeningConstant.login(this,true));
+                    Email.sendEmail(data.getString("email"),"G点信息查询","你好，"+data.getString("name")+":\n纳入计算科目数量:"+data.get("num")+"\n您的学分绩点之和:"+data.get("sum")+"\n您的平均学分绩点:"+data.get("G"));
+                }
+            });
 
             //线程开始消息处理请求
             while(true){
                 String m = br.readLine();
+                System.out.println(m);
                 if(m!=null) {
                     String[] packet = m.split(" ");
                     String json = "";
@@ -92,22 +95,11 @@ public class Connect implements Runnable, GamePlayer {
                 }
             }
 
-        } catch (SocketException e){
-            Player.loginPlayer.remove(this);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            Print.standOutput(getAddress(),"已断开链接");
+            Print.standOutput("已断开链接");
         }
-    }
-
-    public void login(String user){
-        removeAllListen();
-        this.user = user;
-        Player.loginPlayer.add(this);
-        addListen(new ListeningConstant.getPlayerInform(this,true));
-        addListen(new ListeningConstant.createRoom(this,true));
-        addListen(new ListeningConstant.joinRoom(this,true));
     }
 
     public void printPacket(String name,JSONObject packet) {
@@ -136,71 +128,5 @@ public class Connect implements Runnable, GamePlayer {
 
     public void removeAllListen(){
         Listen = new CopyOnWriteArrayList<>();
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public Room getInRoom() {
-        return inRoom;
-    }
-
-    public void setInRoom(Room inRoom) {
-        this.inRoom = inRoom;
-    }
-
-    @Override
-    public List<Integer> waitPlay() {
-        final List<Integer>[] play = new List[1];
-        play[0] = new ArrayList<>();
-        Object lock = new Object();
-        addListen(new ConnectListen("play") {
-            @Override
-            public void run(JSONObject data) {
-                for(var a : data.getJSONArray("play").toList())
-                    play[0].add((int)a);
-                synchronized (lock) {
-                    lock.notifyAll();
-                }
-            }
-        });
-        synchronized (lock){
-            try {
-                lock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return play[0];
-        }
-    }
-
-    @Override
-    public void updataChecker(CheckerBoard checkerBoard,List<Integer> upChess) {
-        var board = new JSONObject();
-        board.put("notEmote",checkerBoard.notEmote());
-        board.put("isBlack",checkerBoard.isBlack());
-        board.put("isKing",checkerBoard.isKing());
-        var data = new JSONObject();
-        data.put("board",board);
-        data.put("upChess",upChess);
-        data.put("nowPro",checkerBoard.getProbably());
-        if(checkerBoard.blackPlay()){
-            if (inRoom.isBlack(this))
-                data.put("wait",false);
-            else
-                data.put("wait",true);
-        } else {
-            if (inRoom.isBlack(this))
-                data.put("wait",true);
-            else
-                data.put("wait",false);
-        }
-        printPacket("updataChecker", data);
-    }
-
-    @Override
-    public JSONObject getInform() {
-        return CommonMethod.getInform(user);
     }
 }

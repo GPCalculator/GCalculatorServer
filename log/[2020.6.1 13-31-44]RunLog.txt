@@ -1,0 +1,2 @@
+[2020/6/1 13:31:44]"Server":  日志文件创建成功，本次运行日志记录于 C:\Users\Administrator\Desktop\CheckerServer5.0\log\[2020.6.1 13-31-44]RunLog.txt
+[2020/6/1 13:31:44]"Server":  服务启动成功，开始监听于：null

@@ -19,9 +19,6 @@ public class Parameter {
     //配置文件集
     public static Properties par = new Properties();
 
-    //连接数据库对象
-    public static Connection cc;
-
     //邮件发送对象
     public static Session session;
 

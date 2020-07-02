@@ -34,7 +34,7 @@ public class Print {
         }
     }
 
-    private static String standDate(){
+    public static String standDate(){
         var date = new Date();
         return "["+(date.getYear()+1900)+"/"+date.getMonth()+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]";
     }

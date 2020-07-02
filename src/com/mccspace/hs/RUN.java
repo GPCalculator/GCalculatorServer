@@ -21,17 +21,12 @@ public class RUN {
 
         try {
 
-            Initialization.MySQLInit();
             Initialization.emailInit();
 
             Start.StartService();
 
         } finally {
-            try {
-                Parameter.cc.close();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
+
         }
 
     }
